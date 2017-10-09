@@ -1,8 +1,9 @@
 <?php
-require_once 'PHPUnit/Autoload.php';
+
+require __DIR__ . '/vendor/autoload.php';
 
 class TeamCity_PHPUnit_Framework_TestListener
-    implements PHPUnit_Framework_TestListener
+    implements PHPUnit\Framework\TestListener
 {
     public static function printEvent($eventName, $params = array())
     {
@@ -73,7 +74,7 @@ class TeamCity_PHPUnit_Framework_TestListener
         return $fileName;
     }
 
-    public function addError(PHPUnit_Framework_Test $test, Exception $e, $time)
+    public function addError(PHPUnit\Framework\Test $test, Exception $e, $time)
     {
         self::printEvent("testFailed", array(
             "name" => $test->getName(),
@@ -82,7 +83,16 @@ class TeamCity_PHPUnit_Framework_TestListener
         ));
     }
 
-    public function addFailure(PHPUnit_Framework_Test $test, PHPUnit_Framework_AssertionFailedError $e, $time)
+    public function addWarning(PHPUnit\Framework\Test $test, PHPUnit\Framework\Warning $e, $time)
+    {
+        self::printEvent("testWarning", array(
+            "name" => $test->getName(),
+            "message" => self::getMessage($e),
+            "details" => self::getDetails($e)
+        ));
+    }
+
+    public function addFailure(PHPUnit\Framework\Test $test, PHPUnit\Framework\AssertionFailedError $e, $time)
     {
         $params = array(
             "name" => $test->getName(),
@@ -105,7 +115,7 @@ class TeamCity_PHPUnit_Framework_TestListener
         self::printEvent("testFailed", $params);
     }
 
-    public function addIncompleteTest(PHPUnit_Framework_Test $test, Exception $e, $time)
+    public function addIncompleteTest(PHPUnit\Framework\Test $test, Exception $e, $time)
     {
         self::printEvent("testIgnored", array(
             "name" => $test->getName(),
@@ -114,7 +124,7 @@ class TeamCity_PHPUnit_Framework_TestListener
         ));
     }
 
-    public function addSkippedTest(PHPUnit_Framework_Test $test, Exception $e, $time)
+    public function addSkippedTest(PHPUnit\Framework\Test $test, Exception $e, $time)
     {
         self::printEvent("testIgnored", array(
             "name" => $test->getName(),
@@ -123,7 +133,7 @@ class TeamCity_PHPUnit_Framework_TestListener
         ));
     }
     
-    public function addRiskyTest(PHPUnit_Framework_Test $test, Exception $e, $time)
+    public function addRiskyTest(PHPUnit\Framework\Test $test, Exception $e, $time)
     {
         self::printEvent("testIgnored", array(
             "name" => $test->getName(),
@@ -132,14 +142,14 @@ class TeamCity_PHPUnit_Framework_TestListener
         ));
     }
 
-    public function startTest(PHPUnit_Framework_Test $test)
+    public function startTest(PHPUnit\Framework\Test $test)
     {
         $testName = $test->getName();
         $params = array(
             "name" => $testName,
             "captureStandardOutput" => "true"
         );
-        if ($test instanceof PHPUnit_Framework_TestCase) {
+        if ($test instanceof PHPUnit\Framework\TestCase) {
             $className = get_class($test);
             $fileName = self::getFileName($className);
             $params['locationHint'] = "file://$fileName::\\$className::$testName";
@@ -147,7 +157,7 @@ class TeamCity_PHPUnit_Framework_TestListener
         self::printEvent("testStarted", $params);
     }
 
-    public function endTest(PHPUnit_Framework_Test $test, $time)
+    public function endTest(PHPUnit\Framework\Test $test, $time)
     {
         self::printEvent("testFinished", array(
             "name" => $test->getName(),
@@ -155,7 +165,7 @@ class TeamCity_PHPUnit_Framework_TestListener
         ));
     }
 
-    public function startTestSuite(PHPUnit_Framework_TestSuite $suite)
+    public function startTestSuite(PHPUnit\Framework\TestSuite $suite)
     {
         $suiteName = $suite->getName();
         if (empty($suiteName)) {
@@ -171,7 +181,7 @@ class TeamCity_PHPUnit_Framework_TestListener
         self::printEvent("testSuiteStarted", $params);
     }
 
-    public function endTestSuite(PHPUnit_Framework_TestSuite $suite)
+    public function endTestSuite(PHPUnit\Framework\TestSuite $suite)
     {
         $suiteName = $suite->getName();
         if (empty($suiteName)) {
@@ -185,7 +195,7 @@ class TeamCity_PHPUnit_Framework_TestListener
 }
 
 class TeamCity_PHPUnit_TextUI_Command
-    extends PHPUnit_TextUI_Command
+    extends PHPUnit\TextUI\Command
 {
     public static function main($exit = TRUE)
     {
@@ -203,10 +213,10 @@ class TeamCity_PHPUnit_TextUI_Command
 
     protected function createRunner()
     {
-        // Disable coverage on the current file
-        $coverage_Filter = new PHP_CodeCoverage_Filter();
-        $coverage_Filter->addFileToBlacklist(__FILE__);
-        $runner = new PHPUnit_TextUI_TestRunner($this->arguments['loader'], $coverage_Filter);
+        // TODO - Disable coverage on the current file
+        $coverage_Filter = new SebastianBergmann\CodeCoverage\Filter('../');
+        $runner = new PHPUnit\TextUI\TestRunner($this->arguments['loader'], $coverage_Filter);
+
         return $runner;
     }
 }
